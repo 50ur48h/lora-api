@@ -42,7 +42,13 @@ async function main(): Promise<void> {
     update: {},
   });
 
-  await upsertUser(IDS.admin, SEED_EMAILS.admin, Role.PLATFORM_ADMIN, null, null);
+  await upsertUser(
+    IDS.admin,
+    SEED_EMAILS.admin,
+    Role.PLATFORM_ADMIN,
+    null,
+    null,
+  );
   await upsertUser(
     IDS.ownerA,
     SEED_EMAILS.ownerA,
@@ -58,14 +64,52 @@ async function main(): Promise<void> {
     IDS.storeA,
   );
 
-  await upsertStaff(IDS.staffA1, IDS.tenantA, IDS.storeA, 'Aisha Rahman', 'Aesthetician');
-  await upsertStaff(IDS.staffA2, IDS.tenantA, IDS.storeA, 'Mei Ling', 'Therapist');
+  await upsertStaff(
+    IDS.staffA1,
+    IDS.tenantA,
+    IDS.storeA,
+    'Aisha Rahman',
+    'Aesthetician',
+  );
+  await upsertStaff(
+    IDS.staffA2,
+    IDS.tenantA,
+    IDS.storeA,
+    'Mei Ling',
+    'Therapist',
+  );
 
-  await upsertService(IDS.tenantA, IDS.storeA, 'glow-facial', 'Signature Facial', 60, 15_000);
-  await upsertService(IDS.tenantA, IDS.storeA, 'glow-botox', 'Botox Consultation', 30, 0);
-  await upsertService(IDS.tenantA, IDS.storeA, 'glow-peel', 'Chemical Peel', 45, 22_000);
+  await upsertService(
+    IDS.tenantA,
+    IDS.storeA,
+    'glow-facial',
+    'Signature Facial',
+    60,
+    15_000,
+  );
+  await upsertService(
+    IDS.tenantA,
+    IDS.storeA,
+    'glow-botox',
+    'Botox Consultation',
+    30,
+    0,
+  );
+  await upsertService(
+    IDS.tenantA,
+    IDS.storeA,
+    'glow-peel',
+    'Chemical Peel',
+    45,
+    22_000,
+  );
 
-  await upsertCustomer(IDS.customerA1, IDS.tenantA, 'Nadia Tan', '+60123456789');
+  await upsertCustomer(
+    IDS.customerA1,
+    IDS.tenantA,
+    'Nadia Tan',
+    '+60123456789',
+  );
 
   // ---- Tenant B — "Serene Aesthetics" ----
   await prisma.tenant.upsert({
@@ -94,15 +138,40 @@ async function main(): Promise<void> {
     null,
   );
 
-  await upsertStaff(IDS.staffB1, IDS.tenantB, IDS.storeB, 'Sofia Abdullah', 'Aesthetician');
-  await upsertStaff(IDS.staffB2, IDS.tenantB, IDS.storeB, 'Priya Nair', 'Therapist');
+  await upsertStaff(
+    IDS.staffB1,
+    IDS.tenantB,
+    IDS.storeB,
+    'Sofia Abdullah',
+    'Aesthetician',
+  );
+  await upsertStaff(
+    IDS.staffB2,
+    IDS.tenantB,
+    IDS.storeB,
+    'Priya Nair',
+    'Therapist',
+  );
 
-  await upsertService(IDS.tenantB, IDS.storeB, 'serene-massage', 'Aromatherapy Massage', 90, 18_000);
-  await upsertService(IDS.tenantB, IDS.storeB, 'serene-facial', 'Hydrating Facial', 60, 16_000);
+  await upsertService(
+    IDS.tenantB,
+    IDS.storeB,
+    'serene-massage',
+    'Aromatherapy Massage',
+    90,
+    18_000,
+  );
+  await upsertService(
+    IDS.tenantB,
+    IDS.storeB,
+    'serene-facial',
+    'Hydrating Facial',
+    60,
+    16_000,
+  );
 
   await upsertCustomer(IDS.customerB1, IDS.tenantB, 'Lim Wei', '+60198765432');
 
-  // eslint-disable-next-line no-console
   console.log('Seed complete: 2 tenants, 2 stores, 4 staff, 5 services.');
 }
 
@@ -178,7 +247,6 @@ function deterministicUuid(key: string): string {
 
 main()
   .catch((e) => {
-    // eslint-disable-next-line no-console
     console.error(e);
     process.exit(1);
   })
