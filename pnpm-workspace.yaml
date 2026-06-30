@@ -1,2 +1,14 @@
 packages:
   - 'packages/*'
+  - 'apps/*'
+
+# Allowlisted dependency build scripts (everything else is ignored by default).
+onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
+  - prisma
+
+# Native deps that ship prebuilt binaries — their build scripts are unnecessary.
+ignoredBuiltDependencies:
+  - sharp
+  - unrs-resolver
