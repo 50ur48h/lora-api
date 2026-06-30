@@ -94,3 +94,12 @@ jobs:
 
       - name: Build
         run: pnpm build
+
+      - name: Verify OpenAPI spec is up to date
+        run: |
+          pnpm openapi:export
+          git diff --exit-code -- openapi.json
+
+      - name: Build SDK
+        run: pnpm --filter @lora/sdk build
+

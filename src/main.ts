@@ -1,9 +1,10 @@
 import 'reflect-metadata';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerModule } from '@nestjs/swagger';
 import { Logger } from 'nestjs-pino';
 import { AppModule } from './app.module';
 import { AppConfigService } from './config/app-config.service';
+import { buildOpenApiDocument } from './openapi';
 import { setupApp } from './setup-app';
 
 async function bootstrap(): Promise<void> {
@@ -13,13 +14,7 @@ async function bootstrap(): Promise<void> {
   app.useLogger(app.get(Logger));
   setupApp(app, config);
 
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle('LORA API')
-    .setDescription('White-label booking platform API')
-    .setVersion('0.0.1')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
+  const document = buildOpenApiDocument(app);
   SwaggerModule.setup('docs', app, document);
 
   await app.listen(config.port);
