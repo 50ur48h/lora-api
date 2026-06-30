@@ -17,7 +17,7 @@
     "dist"
   ],
   "scripts": {
-    "generate": "openapi-typescript ../../openapi.json --output src/generated/schema.d.ts",
+    "generate": "openapi-typescript ../../openapi.json --output src/generated/schema.ts",
     "build": "pnpm run generate && tsc -p tsconfig.json",
     "typecheck": "pnpm run generate && tsc --noEmit -p tsconfig.json"
   },

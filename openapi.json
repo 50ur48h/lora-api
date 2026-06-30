@@ -209,6 +209,36 @@
         ]
       }
     },
+    "/v1/public/stores/{slug}": {
+      "get": {
+        "operationId": "PublicController_getStore",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicStoreResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "public"
+        ]
+      }
+    },
     "/v1/stores": {
       "get": {
         "operationId": "StoresController_list",
@@ -331,6 +361,109 @@
           "role",
           "tenantId",
           "storeId"
+        ]
+      },
+      "PublicThemeDto": {
+        "type": "object",
+        "properties": {
+          "logoUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "colors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Brand colours, e.g. { \"primary\": \"#0F766E\", \"accent\": \"#F59E0B\" }.",
+            "example": {
+              "primary": "#0F766E",
+              "accent": "#F59E0B"
+            }
+          },
+          "fonts": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Font families, e.g. { \"heading\": \"Playfair Display\", \"body\": \"Inter\" }.",
+            "example": {
+              "heading": "Playfair Display",
+              "body": "Inter"
+            }
+          }
+        },
+        "required": [
+          "logoUrl",
+          "colors",
+          "fonts"
+        ]
+      },
+      "PublicServiceDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "durationMin": {
+            "type": "number",
+            "description": "Duration in minutes."
+          },
+          "priceCents": {
+            "type": "number",
+            "description": "Price in cents (MYR)."
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "durationMin",
+          "priceCents"
+        ]
+      },
+      "PublicStoreResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string"
+          },
+          "theme": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PublicThemeDto"
+              }
+            ]
+          },
+          "services": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublicServiceDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "timezone",
+          "theme",
+          "services"
         ]
       },
       "StoreResponseDto": {
