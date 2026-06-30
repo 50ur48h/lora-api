@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { BookingStatus, Role } from '@prisma/client';
 import { DateTime } from 'luxon';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -7,11 +11,14 @@ import {
   type TenantContext,
 } from '../../common/tenancy/tenant-context';
 import type { AvailabilityResponseDto } from './dto/availability-response.dto';
+import type { BookingResponseDto } from './dto/booking-response.dto';
+import type { CreateBookingDto } from './dto/create-booking.dto';
 import type { PublicStoreResponseDto } from './dto/public-store-response.dto';
 import {
   generateSlots,
   type AvailabilityWindow,
   type BusyInterval,
+  type Slot,
 } from './slots';
 
 /**
@@ -105,59 +112,13 @@ export class PublicService {
         throw new NotFoundException('Service not found');
       }
 
-      const staff = await this.prisma.scoped.staff.findMany({
-        where: { storeId, active: true },
-        select: { id: true },
-      });
-      const staffIds = staff.map((s) => s.id);
-      if (staffIds.length === 0) {
-        return { date, slots: [] };
-      }
-
-      const availabilities = await this.prisma.scoped.availability.findMany({
-        where: { staffId: { in: staffIds } },
-        select: {
-          staffId: true,
-          weekday: true,
-          startTime: true,
-          endTime: true,
-        },
-      });
-
-      const day = DateTime.fromISO(date, { zone: store.timezone });
-      const bookings = await this.prisma.scoped.booking.findMany({
-        where: {
-          staffId: { in: staffIds },
-          status: { in: BUSY_STATUSES },
-          startAt: {
-            gte: day.startOf('day').toUTC().toJSDate(),
-            lte: day.endOf('day').toUTC().toJSDate(),
-          },
-        },
-        select: { staffId: true, startAt: true, endAt: true },
-      });
-
-      const windows: AvailabilityWindow[] = availabilities.map((a) => ({
-        staffId: a.staffId,
-        weekday: a.weekday,
-        startTime: a.startTime,
-        endTime: a.endTime,
-      }));
-      const busy: BusyInterval[] = bookings.map((b) => ({
-        staffId: b.staffId,
-        start: b.startAt,
-        end: b.endAt,
-      }));
-
-      const slots = generateSlots({
+      const slots = await this.computeSlots(
+        storeId,
+        store.timezone,
+        service.durationMin,
+        service.bufferMin,
         date,
-        timezone: store.timezone,
-        durationMin: service.durationMin,
-        bufferMin: service.bufferMin,
-        stepMin: SLOT_STEP_MIN,
-        windows,
-        busy,
-      });
+      );
 
       return {
         date,
@@ -166,6 +127,196 @@ export class PublicService {
           staffId: s.staffId,
         })),
       };
+    });
+  }
+
+  /** Raw open slots for a service on a day (shared by availability + booking). */
+  private async computeSlots(
+    storeId: string,
+    timezone: string,
+    durationMin: number,
+    bufferMin: number,
+    date: string,
+  ): Promise<Slot[]> {
+    const staff = await this.prisma.scoped.staff.findMany({
+      where: { storeId, active: true },
+      select: { id: true },
+    });
+    const staffIds = staff.map((s) => s.id);
+    if (staffIds.length === 0) {
+      return [];
+    }
+
+    const availabilities = await this.prisma.scoped.availability.findMany({
+      where: { staffId: { in: staffIds } },
+      select: { staffId: true, weekday: true, startTime: true, endTime: true },
+    });
+
+    const day = DateTime.fromISO(date, { zone: timezone });
+    const bookings = await this.prisma.scoped.booking.findMany({
+      where: {
+        staffId: { in: staffIds },
+        status: { in: BUSY_STATUSES },
+        startAt: {
+          gte: day.startOf('day').toUTC().toJSDate(),
+          lte: day.endOf('day').toUTC().toJSDate(),
+        },
+      },
+      select: { staffId: true, startAt: true, endAt: true },
+    });
+
+    const windows: AvailabilityWindow[] = availabilities.map((a) => ({
+      staffId: a.staffId,
+      weekday: a.weekday,
+      startTime: a.startTime,
+      endTime: a.endTime,
+    }));
+    const busy: BusyInterval[] = bookings.map((b) => ({
+      staffId: b.staffId,
+      start: b.startAt,
+      end: b.endAt,
+    }));
+
+    return generateSlots({
+      date,
+      timezone,
+      durationMin,
+      bufferMin,
+      stepMin: SLOT_STEP_MIN,
+      windows,
+      busy,
+    });
+  }
+
+  /**
+   * Creates a booking for an open slot. The slot is re-validated against live
+   * availability, and a database exclusion constraint is the race-safe backstop
+   * against concurrent double-booking.
+   */
+  async createBooking(
+    slug: string,
+    dto: CreateBookingDto,
+  ): Promise<BookingResponseDto> {
+    const { storeId, tenantId } = await this.resolveStore(slug);
+
+    return this.asTenant(tenantId, async () => {
+      const store = await this.prisma.scoped.store.findUnique({
+        where: { id: storeId },
+        select: { timezone: true },
+      });
+      if (!store) {
+        throw new NotFoundException('Store not found');
+      }
+
+      const service = await this.prisma.scoped.service.findFirst({
+        where: { id: dto.serviceId, storeId, active: true },
+        select: {
+          name: true,
+          durationMin: true,
+          bufferMin: true,
+          priceCents: true,
+        },
+      });
+      if (!service) {
+        throw new NotFoundException('Service not found');
+      }
+
+      const staff = await this.prisma.scoped.staff.findFirst({
+        where: { id: dto.staffId, storeId, active: true },
+        select: { name: true },
+      });
+      if (!staff) {
+        throw new NotFoundException('Staff not found');
+      }
+
+      const startAt = new Date(dto.startAt);
+      const date = DateTime.fromJSDate(startAt)
+        .setZone(store.timezone)
+        .toISODate();
+      if (
+        Number.isNaN(startAt.getTime()) ||
+        startAt.getTime() <= Date.now() ||
+        !date
+      ) {
+        throw new ConflictException('Slot is not available');
+      }
+
+      const slots = await this.computeSlots(
+        storeId,
+        store.timezone,
+        service.durationMin,
+        service.bufferMin,
+        date,
+      );
+      const isOpen = slots.some(
+        (s) =>
+          s.startAt.getTime() === startAt.getTime() &&
+          s.staffId === dto.staffId,
+      );
+      if (!isOpen) {
+        throw new ConflictException('Slot is not available');
+      }
+
+      const endAt = new Date(startAt.getTime() + service.durationMin * 60_000);
+      const customer = await this.findOrCreateCustomer(tenantId, dto.customer);
+
+      let booking: {
+        id: string;
+        status: BookingStatus;
+        startAt: Date;
+        endAt: Date;
+      };
+      try {
+        booking = await this.prisma.scoped.booking.create({
+          data: {
+            tenantId,
+            storeId,
+            serviceId: dto.serviceId,
+            staffId: dto.staffId,
+            customerId: customer.id,
+            startAt,
+            endAt,
+          },
+          select: { id: true, status: true, startAt: true, endAt: true },
+        });
+      } catch (err) {
+        if (isExclusionViolation(err)) {
+          throw new ConflictException('Slot was just taken');
+        }
+        throw err;
+      }
+
+      return {
+        id: booking.id,
+        status: booking.status,
+        startAt: booking.startAt.toISOString(),
+        endAt: booking.endAt.toISOString(),
+        serviceName: service.name,
+        staffName: staff.name,
+        priceCents: service.priceCents,
+      };
+    });
+  }
+
+  private async findOrCreateCustomer(
+    tenantId: string,
+    input: CreateBookingDto['customer'],
+  ): Promise<{ id: string }> {
+    const existing = await this.prisma.scoped.customer.findFirst({
+      where: { phone: input.phone },
+      select: { id: true },
+    });
+    if (existing) {
+      return existing;
+    }
+    return this.prisma.scoped.customer.create({
+      data: {
+        tenantId,
+        name: input.name,
+        phone: input.phone,
+        email: input.email ?? null,
+      },
+      select: { id: true },
     });
   }
 
@@ -191,6 +342,14 @@ export class PublicService {
     };
     return runWithTenant(ctx, fn);
   }
+}
+
+/** Detects the Postgres exclusion-constraint violation Prisma leaves unmapped. */
+function isExclusionViolation(err: unknown): boolean {
+  return (
+    err instanceof Error &&
+    /booking_no_overlap|exclusion constraint|23P01/.test(err.message)
+  );
 }
 
 /** Coerce a Prisma `Json` value into a flat string map, dropping non-strings. */

@@ -287,6 +287,46 @@
         ]
       }
     },
+    "/v1/public/stores/{slug}/bookings": {
+      "post": {
+        "operationId": "PublicController_createBooking",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBookingDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "public"
+        ]
+      }
+    },
     "/v1/stores": {
       "get": {
         "operationId": "StoresController_list",
@@ -550,6 +590,101 @@
         "required": [
           "date",
           "slots"
+        ]
+      },
+      "BookingCustomerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "example": "Nadia Tan"
+          },
+          "phone": {
+            "type": "string",
+            "example": "+60123456789"
+          },
+          "email": {
+            "type": "string",
+            "example": "nadia@example.com"
+          }
+        },
+        "required": [
+          "name",
+          "phone"
+        ]
+      },
+      "CreateBookingDto": {
+        "type": "object",
+        "properties": {
+          "serviceId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "staffId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Chosen slot start (ISO 8601, UTC)."
+          },
+          "customer": {
+            "$ref": "#/components/schemas/BookingCustomerDto"
+          }
+        },
+        "required": [
+          "serviceId",
+          "staffId",
+          "startAt",
+          "customer"
+        ]
+      },
+      "BookingResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED",
+              "NO_SHOW"
+            ]
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "serviceName": {
+            "type": "string"
+          },
+          "staffName": {
+            "type": "string"
+          },
+          "priceCents": {
+            "type": "number",
+            "description": "Price in cents (MYR)."
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "startAt",
+          "endAt",
+          "serviceName",
+          "staffName",
+          "priceCents"
         ]
       },
       "StoreResponseDto": {
