@@ -1,11 +1,18 @@
+import { InjectQueue } from '@nestjs/bullmq';
 import {
   ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { BookingStatus, Role } from '@prisma/client';
+import { Queue } from 'bullmq';
 import { DateTime } from 'luxon';
 import { PrismaService } from '../../common/prisma/prisma.service';
+import {
+  JOB_BOOKING_CONFIRMATION,
+  QUEUE_NOTIFICATIONS,
+} from '../../queues/queue-names';
 import {
   runWithTenant,
   type TenantContext,
@@ -36,7 +43,12 @@ const BUSY_STATUSES: BookingStatus[] = [
 
 @Injectable()
 export class PublicService {
-  constructor(private readonly prisma: PrismaService) {}
+  private readonly logger = new Logger(PublicService.name);
+
+  constructor(
+    private readonly prisma: PrismaService,
+    @InjectQueue(QUEUE_NOTIFICATIONS) private readonly notifications: Queue,
+  ) {}
 
   /**
    * Resolves a store by its public slug and returns the data a booking page
@@ -286,6 +298,8 @@ export class PublicService {
         throw err;
       }
 
+      await this.enqueueConfirmation(booking.id, tenantId);
+
       return {
         id: booking.id,
         status: booking.status,
@@ -296,6 +310,23 @@ export class PublicService {
         priceCents: service.priceCents,
       };
     });
+  }
+
+  /** Best-effort enqueue of the booking confirmation (never blocks booking). */
+  private async enqueueConfirmation(
+    bookingId: string,
+    tenantId: string,
+  ): Promise<void> {
+    try {
+      await this.notifications.add(JOB_BOOKING_CONFIRMATION, {
+        bookingId,
+        tenantId,
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to enqueue confirmation for booking ${bookingId}: ${String(err)}`,
+      );
+    }
   }
 
   private async findOrCreateCustomer(
