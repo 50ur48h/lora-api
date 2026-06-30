@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-test:
+    name: Build & test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: lora
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d lora"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      LOG_LEVEL: silent
+      CORS_ORIGINS: http://localhost:3001
+      # DATABASE_URL connects as the RLS-enforced app role (created by the
+      # migration). DIRECT_URL is the superuser used for migrations + seeding.
+      DATABASE_URL: postgresql://app_user:app_user_pw@localhost:5432/lora?schema=public
+      DIRECT_URL: postgresql://postgres:postgres@localhost:5432/lora?schema=public
+      REDIS_URL: redis://localhost:6379
+      # CI-only throwaway secret (never used outside CI).
+      SUPABASE_JWT_SECRET: ci-test-only-jwt-secret-do-not-use-in-production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
+      - name: Lint
+        run: pnpm lint:check
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Apply database migrations
+        run: pnpm prisma migrate deploy
+
+      - name: Seed database
+        run: pnpm db:seed
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: End-to-end tests (incl. tenant isolation)
+        run: pnpm test:e2e
+
+      - name: Build
+        run: pnpm build

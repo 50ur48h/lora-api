@@ -30,14 +30,12 @@ async function main(): Promise<void> {
   writeFileSync(outPath, JSON.stringify(document, null, 2));
   await app.close();
 
-  // eslint-disable-next-line no-console
   console.log(`OpenAPI spec written to ${outPath}`);
 }
 
 main()
   .then(() => process.exit(0))
   .catch((err) => {
-    // eslint-disable-next-line no-console
     console.error('Failed to export OpenAPI spec:', err);
     process.exit(1);
   });

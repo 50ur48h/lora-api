@@ -16,7 +16,7 @@ async function main(): Promise<void> {
   const email =
     (SEED_EMAILS as Record<string, string>)[who] ?? `${who}@lora.dev`;
   const token = await signToken(sub, secret, { email });
-  // eslint-disable-next-line no-console
+
   console.log(token);
 }
 

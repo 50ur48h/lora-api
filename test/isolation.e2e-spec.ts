@@ -100,7 +100,9 @@ describe('Tenant isolation (e2e)', () => {
     it('returns only tenant A rows when app.current_tenant = A', async () => {
       const rows = await appUserDb.$transaction(async (tx) => {
         await tx.$executeRaw`SELECT set_config('app.current_tenant', ${IDS.tenantA}, true)`;
-        return tx.$queryRaw<Array<{ tenantId: string }>>`SELECT "tenantId" FROM "Store"`;
+        return tx.$queryRaw<
+          Array<{ tenantId: string }>
+        >`SELECT "tenantId" FROM "Store"`;
       });
 
       expect(rows.length).toBeGreaterThan(0);
@@ -110,7 +112,9 @@ describe('Tenant isolation (e2e)', () => {
     it('returns only tenant B rows when app.current_tenant = B', async () => {
       const rows = await appUserDb.$transaction(async (tx) => {
         await tx.$executeRaw`SELECT set_config('app.current_tenant', ${IDS.tenantB}, true)`;
-        return tx.$queryRaw<Array<{ tenantId: string }>>`SELECT "tenantId" FROM "Store"`;
+        return tx.$queryRaw<
+          Array<{ tenantId: string }>
+        >`SELECT "tenantId" FROM "Store"`;
       });
 
       expect(rows.length).toBeGreaterThan(0);
@@ -118,8 +122,9 @@ describe('Tenant isolation (e2e)', () => {
     });
 
     it('returns zero rows when no tenant GUC is set', async () => {
-      const rows =
-        await appUserDb.$queryRaw<Array<{ id: string }>>`SELECT id FROM "Store"`;
+      const rows = await appUserDb.$queryRaw<
+        Array<{ id: string }>
+      >`SELECT id FROM "Store"`;
       expect(rows).toHaveLength(0);
     });
   });

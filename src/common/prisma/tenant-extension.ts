@@ -46,7 +46,11 @@ type AnyArgs = {
  * untouched here to preserve Prisma's unique-where semantics — RLS still scopes
  * them at the database layer.
  */
-function injectTenant(operation: string, args: AnyArgs, tenantId: string): void {
+function injectTenant(
+  operation: string,
+  args: AnyArgs,
+  tenantId: string,
+): void {
   if (WHERE_OPS.has(operation)) {
     args.where = { ...(args.where ?? {}), tenantId };
     return;
@@ -88,7 +92,7 @@ function createTenantClient(base: PrismaClient) {
             return query(args);
           }
 
-          injectTenant(operation, args as AnyArgs, tenantId);
+          injectTenant(operation, args, tenantId);
 
           const [, result] = await base.$transaction([
             base.$executeRaw`SELECT set_config('app.current_tenant', ${tenantId}, true)`,
