@@ -39,9 +39,7 @@ describe('Public booking API (e2e)', () => {
     });
     expect(res.body.theme?.colors?.primary).toBe('#0F766E');
     expect(res.body.services).toHaveLength(3);
-    const names = res.body.services
-      .map((s: { name: string }) => s.name)
-      .sort();
+    const names = res.body.services.map((s: { name: string }) => s.name).sort();
     expect(names).toEqual([
       'Botox Consultation',
       'Chemical Peel',

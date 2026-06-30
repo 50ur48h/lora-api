@@ -33,7 +33,10 @@ export default tseslint.config(
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
-      'prettier/prettier': ['error', { endOfLine: 'auto' }],
+      // Enforce LF to match .gitattributes (eol=lf). 'auto' makes formatting
+      // depend on the working-tree EOL, which diverges between Windows (CRLF)
+      // and CI (LF) and produces inconsistent wrapping.
+      'prettier/prettier': ['error', { endOfLine: 'lf' }],
     },
   },
   {
