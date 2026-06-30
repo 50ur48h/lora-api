@@ -103,3 +103,9 @@ jobs:
       - name: Build SDK
         run: pnpm --filter @lora/sdk build
 
+      - name: Lint web
+        run: pnpm --filter @lora/web lint
+
+      - name: Build web
+        run: pnpm --filter @lora/web build
+
