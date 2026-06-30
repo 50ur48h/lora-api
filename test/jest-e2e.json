@@ -1,0 +1,17 @@
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testEnvironmentOptions": {
+    "customExportConditions": ["node", "require", "default"]
+  },
+  "testRegex": ".e2e-spec.ts$",
+  "testTimeout": 30000,
+  "transform": {
+    "^.+\\.(t|j)s$": [
+      "ts-jest",
+      { "isolatedModules": true, "tsconfig": { "allowJs": true } }
+    ]
+  },
+  "transformIgnorePatterns": ["/node_modules/\\.pnpm/(?!jose@)"]
+}
