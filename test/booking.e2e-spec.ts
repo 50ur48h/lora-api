@@ -46,7 +46,9 @@ describe('Booking creation (e2e)', () => {
 
   async function firstSlot(date: string) {
     const res = await request(app.getHttpServer())
-      .get(`/v1/public/stores/${SLUG}/services/${serviceId}/availability?date=${date}`)
+      .get(
+        `/v1/public/stores/${SLUG}/services/${serviceId}/availability?date=${date}`,
+      )
       .expect(200);
     return res.body.slots[0] as { startAt: string; staffId: string };
   }
@@ -58,7 +60,12 @@ describe('Booking creation (e2e)', () => {
     const slot = await firstSlot(date);
     expect(slot).toBeDefined();
 
-    const body = { serviceId, staffId: slot.staffId, startAt: slot.startAt, customer };
+    const body = {
+      serviceId,
+      staffId: slot.staffId,
+      startAt: slot.startAt,
+      customer,
+    };
 
     const created = await request(app.getHttpServer())
       .post(`/v1/public/stores/${SLUG}/bookings`)
@@ -71,7 +78,9 @@ describe('Booking creation (e2e)', () => {
 
     // The booked slot is gone for that staff.
     const after = await request(app.getHttpServer())
-      .get(`/v1/public/stores/${SLUG}/services/${serviceId}/availability?date=${date}`)
+      .get(
+        `/v1/public/stores/${SLUG}/services/${serviceId}/availability?date=${date}`,
+      )
       .expect(200);
     const taken = after.body.slots.find(
       (s: { startAt: string; staffId: string }) =>
