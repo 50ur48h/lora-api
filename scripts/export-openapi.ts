@@ -2,13 +2,12 @@ import 'reflect-metadata';
 import { writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from '../src/app.module';
+import { buildOpenApiDocument } from '../src/openapi';
 
 /**
- * Emits `openapi.json` — the source of truth that `lora-sdk` generates from.
- * Requires Postgres + Redis to be reachable (the app boots fully). Run with:
- *   pnpm openapi:export
+ * Emits `openapi.json` — the source of truth that `@lora/sdk` generates from.
+ * Run with: `pnpm openapi:export`.
  */
 async function main(): Promise<void> {
   // Build the module graph without opening DB/Redis connections — the Swagger
@@ -18,14 +17,8 @@ async function main(): Promise<void> {
     abortOnError: false,
     preview: true,
   });
-  const config = new DocumentBuilder()
-    .setTitle('LORA API')
-    .setDescription('White-label booking platform API')
-    .setVersion('0.0.1')
-    .addBearerAuth()
-    .build();
 
-  const document = SwaggerModule.createDocument(app, config);
+  const document = buildOpenApiDocument(app);
   const outPath = resolve(process.cwd(), 'openapi.json');
   writeFileSync(outPath, JSON.stringify(document, null, 2));
   await app.close();

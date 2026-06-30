@@ -1,6 +1,6 @@
 # compiled output
 /dist
-/node_modules
+node_modules
 /build
 
 # Logs
@@ -53,5 +53,9 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # Prisma
 prisma/*.db
 
-# OpenAPI artifact
-openapi.json
+# The generated OpenAPI spec IS committed — it is the API contract that
+# @lora/sdk generates from. Regenerate with `pnpm openapi:export`.
+
+# Workspace package build output / generated code
+packages/*/dist
+packages/*/src/generated

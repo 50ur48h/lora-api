@@ -26,7 +26,8 @@
     "prisma:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force",
-    "openapi:export": "nest build && node dist/scripts/export-openapi.js"
+    "openapi:export": "nest build && node dist/scripts/export-openapi.js",
+    "sdk:build": "pnpm --filter @lora/sdk build"
   },
   "engines": {
     "node": ">=20"
