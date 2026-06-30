@@ -1,5 +1,13 @@
 import { Module } from '@nestjs/common';
+import { NotificationsProcessor } from './notifications.processor';
+import { NotificationsService } from './notifications.service';
 
-/** Skeleton — message sending arrives in Phase 1 (queue infra is in QueuesModule). */
-@Module({})
+/**
+ * Booking notifications. A BullMQ worker (NotificationsProcessor) consumes the
+ * `notifications` queue and records/sends confirmations via NotificationsService.
+ */
+@Module({
+  providers: [NotificationsService, NotificationsProcessor],
+  exports: [NotificationsService],
+})
 export class NotificationsModule {}
