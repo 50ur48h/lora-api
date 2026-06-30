@@ -1,33 +1,20 @@
-import type { CSSProperties } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { formatDuration, formatPrice } from "@/lib/format";
+import { brandStyle } from "@/lib/theme";
 import { lora } from "@/lib/lora";
 
 // Booking pages are tenant-specific and data-driven — always render fresh.
 export const dynamic = "force-dynamic";
-
-function formatPrice(cents: number): string {
-  if (cents === 0) return "Free";
-  return new Intl.NumberFormat("en-MY", {
-    style: "currency",
-    currency: "MYR",
-  }).format(cents / 100);
-}
-
-function formatDuration(min: number): string {
-  if (min < 60) return `${min} min`;
-  const hours = Math.floor(min / 60);
-  const mins = min % 60;
-  return mins ? `${hours} h ${mins} min` : `${hours} h`;
-}
 
 export default async function StorefrontPage({
   params,
@@ -43,16 +30,8 @@ export default async function StorefrontPage({
     notFound();
   }
 
-  // Apply the tenant's brand colours by overriding the design tokens locally.
-  const primary = store.theme?.colors?.primary;
-  const accent = store.theme?.colors?.accent;
-  const themeStyle = {
-    ...(primary ? { "--primary": primary } : {}),
-    ...(accent ? { "--accent": accent } : {}),
-  } as CSSProperties;
-
   return (
-    <div style={themeStyle} className="flex flex-1 flex-col">
+    <div style={brandStyle(store.theme)} className="flex flex-1 flex-col">
       <header className="border-b border-border">
         <div className="mx-auto flex w-full max-w-4xl flex-col items-start gap-3 px-6 py-12">
           <Badge>Now booking</Badge>
@@ -84,7 +63,12 @@ export default async function StorefrontPage({
                   <span className="text-lg font-semibold">
                     {formatPrice(service.priceCents)}
                   </span>
-                  <Button>Book</Button>
+                  <Link
+                    href={`/${slug}/book/${service.id}`}
+                    className={buttonVariants()}
+                  >
+                    Book
+                  </Link>
                 </CardFooter>
               </Card>
             ))}
