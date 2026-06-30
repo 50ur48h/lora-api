@@ -16,6 +16,7 @@ import { HealthModule } from './health/health.module';
 
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { PublicModule } from './modules/public/public.module';
 import { StoresModule } from './modules/stores/stores.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 import { StaffModule } from './modules/staff/staff.module';
@@ -42,6 +43,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     // Domain modules
     UsersModule,
     AuthModule,
+    PublicModule,
     StoresModule,
     TenantsModule,
     StaffModule,
