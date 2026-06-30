@@ -79,6 +79,9 @@ async function main(): Promise<void> {
     'Therapist',
   );
 
+  await seedAvailability(IDS.tenantA, IDS.staffA1);
+  await seedAvailability(IDS.tenantA, IDS.staffA2);
+
   await upsertService(
     IDS.tenantA,
     IDS.storeA,
@@ -153,6 +156,9 @@ async function main(): Promise<void> {
     'Therapist',
   );
 
+  await seedAvailability(IDS.tenantB, IDS.staffB1);
+  await seedAvailability(IDS.tenantB, IDS.staffB2);
+
   await upsertService(
     IDS.tenantB,
     IDS.storeB,
@@ -172,7 +178,7 @@ async function main(): Promise<void> {
 
   await upsertCustomer(IDS.customerB1, IDS.tenantB, 'Lim Wei', '+60198765432');
 
-  console.log('Seed complete: 2 tenants, 2 stores, 4 staff, 5 services.');
+  console.log('Seed complete: tenants, stores, staff, services, availability.');
 }
 
 async function upsertUser(
@@ -232,6 +238,28 @@ async function upsertCustomer(
     create: { id, tenantId, name, phone },
     update: { name, phone },
   });
+}
+
+async function seedAvailability(
+  tenantId: string,
+  staffId: string,
+): Promise<void> {
+  // Monday–Saturday, 10:00–18:00 local.
+  for (let weekday = 1; weekday <= 6; weekday++) {
+    const id = deterministicUuid(`avail:${staffId}:${weekday}`);
+    await prisma.availability.upsert({
+      where: { id },
+      create: {
+        id,
+        tenantId,
+        staffId,
+        weekday,
+        startTime: '10:00',
+        endTime: '18:00',
+      },
+      update: { startTime: '10:00', endTime: '18:00' },
+    });
+  }
 }
 
 /** Stable UUID-shaped id from an arbitrary key (for idempotent seeding). */

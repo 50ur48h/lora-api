@@ -239,6 +239,54 @@
         ]
       }
     },
+    "/v1/public/stores/{slug}/services/{serviceId}/availability": {
+      "get": {
+        "operationId": "PublicController_getAvailability",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "serviceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "date",
+            "required": true,
+            "in": "query",
+            "description": "Target day in the store timezone (YYYY-MM-DD).",
+            "schema": {
+              "example": "2026-07-01",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AvailabilityResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "public"
+        ]
+      }
+    },
     "/v1/stores": {
       "get": {
         "operationId": "StoresController_list",
@@ -464,6 +512,44 @@
           "timezone",
           "theme",
           "services"
+        ]
+      },
+      "SlotDto": {
+        "type": "object",
+        "properties": {
+          "startAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC instant the appointment would start."
+          },
+          "staffId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Staff member available for this slot."
+          }
+        },
+        "required": [
+          "startAt",
+          "staffId"
+        ]
+      },
+      "AvailabilityResponseDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "example": "2026-07-01"
+          },
+          "slots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SlotDto"
+            }
+          }
+        },
+        "required": [
+          "date",
+          "slots"
         ]
       },
       "StoreResponseDto": {
