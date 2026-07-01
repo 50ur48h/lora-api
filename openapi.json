@@ -394,6 +394,242 @@
         ]
       }
     },
+    "/v1/staff": {
+      "get": {
+        "operationId": "StaffController_list",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/StaffMemberDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      },
+      "post": {
+        "operationId": "StaffController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStaffDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffMemberDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/v1/staff/{id}": {
+      "patch": {
+        "operationId": "StaffController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStaffDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StaffMemberDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "staff"
+        ]
+      }
+    },
+    "/v1/services": {
+      "get": {
+        "operationId": "ServicesController_list",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "services"
+        ]
+      },
+      "post": {
+        "operationId": "ServicesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateServiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "services"
+        ]
+      }
+    },
+    "/v1/services/{id}": {
+      "patch": {
+        "operationId": "ServicesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateServiceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "services"
+        ]
+      }
+    },
     "/v1/bookings": {
       "get": {
         "operationId": "BookingsController_list",
@@ -408,6 +644,51 @@
                   "items": {
                     "$ref": "#/components/schemas/BookingListItemDto"
                   }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "bookings"
+        ]
+      }
+    },
+    "/v1/bookings/{id}/status": {
+      "patch": {
+        "operationId": "BookingsController_updateStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateBookingStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingListItemDto"
                 }
               }
             }
@@ -786,6 +1067,189 @@
           "active"
         ]
       },
+      "StaffMemberDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "jobTitle": {
+            "type": "object",
+            "nullable": true
+          },
+          "photoUrl": {
+            "type": "object",
+            "nullable": true
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "storeId",
+          "name",
+          "jobTitle",
+          "photoUrl",
+          "active"
+        ]
+      },
+      "CreateStaffDto": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Aisha Rahman"
+          },
+          "jobTitle": {
+            "type": "string",
+            "example": "Senior Therapist"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Defaults to active."
+          }
+        },
+        "required": [
+          "storeId",
+          "name"
+        ]
+      },
+      "UpdateStaffDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "jobTitle": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ServiceResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "durationMin": {
+            "type": "number",
+            "description": "Duration in minutes."
+          },
+          "bufferMin": {
+            "type": "number",
+            "description": "Buffer/cleanup minutes after the service."
+          },
+          "priceCents": {
+            "type": "number",
+            "description": "Price in cents."
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "storeId",
+          "name",
+          "durationMin",
+          "bufferMin",
+          "priceCents",
+          "active"
+        ]
+      },
+      "CreateServiceDto": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "example": "Signature Facial"
+          },
+          "durationMin": {
+            "type": "number",
+            "example": 60,
+            "minimum": 1,
+            "description": "Duration in minutes."
+          },
+          "bufferMin": {
+            "type": "number",
+            "example": 0,
+            "minimum": 0
+          },
+          "priceCents": {
+            "type": "number",
+            "example": 15000,
+            "minimum": 0,
+            "description": "Price in cents."
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Defaults to active."
+          }
+        },
+        "required": [
+          "storeId",
+          "name",
+          "durationMin",
+          "priceCents"
+        ]
+      },
+      "UpdateServiceDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "durationMin": {
+            "type": "number",
+            "minimum": 1
+          },
+          "bufferMin": {
+            "type": "number",
+            "minimum": 0
+          },
+          "priceCents": {
+            "type": "number",
+            "minimum": 0
+          },
+          "active": {
+            "type": "boolean"
+          }
+        }
+      },
       "BookingListItemDto": {
         "type": "object",
         "properties": {
@@ -844,6 +1308,25 @@
           "customerPhone",
           "customerEmail",
           "priceCents"
+        ]
+      },
+      "UpdateBookingStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED",
+              "NO_SHOW"
+            ]
+          }
+        },
+        "required": [
+          "status"
         ]
       }
     }
