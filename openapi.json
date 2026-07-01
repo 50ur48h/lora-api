@@ -393,6 +393,35 @@
           "stores"
         ]
       }
+    },
+    "/v1/bookings": {
+      "get": {
+        "operationId": "BookingsController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BookingListItemDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "bookings"
+        ]
+      }
     }
   },
   "info": {
@@ -755,6 +784,66 @@
           "jobTitle",
           "photoUrl",
           "active"
+        ]
+      },
+      "BookingListItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED",
+              "NO_SHOW"
+            ]
+          },
+          "serviceName": {
+            "type": "string"
+          },
+          "staffName": {
+            "type": "string"
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "customerPhone": {
+            "type": "string",
+            "nullable": true
+          },
+          "customerEmail": {
+            "type": "string",
+            "nullable": true
+          },
+          "priceCents": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "startAt",
+          "endAt",
+          "status",
+          "serviceName",
+          "staffName",
+          "customerName",
+          "customerPhone",
+          "customerEmail",
+          "priceCents"
         ]
       }
     }
