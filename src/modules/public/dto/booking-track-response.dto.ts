@@ -1,11 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { BookingStatus } from '@prisma/client';
 
-export class BookingResponseDto {
-  @ApiProperty({ format: 'uuid' })
-  id!: string;
-
-  @ApiProperty({ description: 'Human-friendly tracking reference.' })
+/** Public booking-status payload returned by the tracking endpoint. */
+export class BookingTrackResponseDto {
+  @ApiProperty()
   reference!: string;
 
   @ApiProperty({ enum: BookingStatus })
@@ -22,6 +20,18 @@ export class BookingResponseDto {
 
   @ApiProperty()
   staffName!: string;
+
+  @ApiProperty()
+  storeName!: string;
+
+  @ApiProperty()
+  storeSlug!: string;
+
+  @ApiProperty({ description: 'IANA timezone of the store.' })
+  timezone!: string;
+
+  @ApiProperty()
+  customerName!: string;
 
   @ApiProperty({ description: 'Price in cents (MYR).' })
   priceCents!: number;

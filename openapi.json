@@ -327,6 +327,36 @@
         ]
       }
     },
+    "/v1/public/bookings/{reference}": {
+      "get": {
+        "operationId": "PublicController_trackBooking",
+        "parameters": [
+          {
+            "name": "reference",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookingTrackResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "public"
+        ]
+      }
+    },
     "/v1/stores": {
       "get": {
         "operationId": "StoresController_list",
@@ -957,6 +987,10 @@
             "type": "string",
             "format": "uuid"
           },
+          "reference": {
+            "type": "string",
+            "description": "Human-friendly tracking reference."
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -989,11 +1023,75 @@
         },
         "required": [
           "id",
+          "reference",
           "status",
           "startAt",
           "endAt",
           "serviceName",
           "staffName",
+          "priceCents"
+        ]
+      },
+      "BookingTrackResponseDto": {
+        "type": "object",
+        "properties": {
+          "reference": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REQUESTED",
+              "CONFIRMED",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "CANCELLED",
+              "NO_SHOW"
+            ]
+          },
+          "startAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "endAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "serviceName": {
+            "type": "string"
+          },
+          "staffName": {
+            "type": "string"
+          },
+          "storeName": {
+            "type": "string"
+          },
+          "storeSlug": {
+            "type": "string"
+          },
+          "timezone": {
+            "type": "string",
+            "description": "IANA timezone of the store."
+          },
+          "customerName": {
+            "type": "string"
+          },
+          "priceCents": {
+            "type": "number",
+            "description": "Price in cents (MYR)."
+          }
+        },
+        "required": [
+          "reference",
+          "status",
+          "startAt",
+          "endAt",
+          "serviceName",
+          "staffName",
+          "storeName",
+          "storeSlug",
+          "timezone",
+          "customerName",
           "priceCents"
         ]
       },

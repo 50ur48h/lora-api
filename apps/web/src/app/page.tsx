@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -79,44 +79,54 @@ export default function Home() {
           <a href="#preview" className="transition-colors hover:text-foreground">
             Preview
           </a>
-          <a href="#" className="transition-colors hover:text-foreground">
-            Pricing
-          </a>
+          <Link
+            href="/track"
+            className="transition-colors hover:text-foreground"
+          >
+            Track booking
+          </Link>
         </nav>
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
+          <Link
+            href="/admin/login"
+            className={cn(
+              buttonVariants({ variant: "ghost", size: "sm" }),
+              "hidden sm:inline-flex",
+            )}
+          >
             Sign in
-          </Button>
-          <Button size="sm">
+          </Link>
+          <Link href="/glow-klcc" className={buttonVariants({ size: "sm" })}>
             Get started
             <ArrowRight />
-          </Button>
+          </Link>
         </div>
       </header>
 
       <section className="mx-auto flex w-full max-w-6xl flex-col items-center px-6 pb-16 pt-12 text-center sm:pt-20">
-        <Badge variant="accent" className="mb-5">
+        <Badge variant="accent" className="mb-5 animate-fade-in">
           <Star className="size-3" />
           Built for med spas in Malaysia
         </Badge>
-        <h1 className="max-w-3xl text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
+        <h1 className="max-w-3xl animate-slide-up text-balance text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">
           The booking platform that keeps{" "}
-          <span className="bg-gradient-to-r from-primary to-accent-foreground bg-clip-text text-transparent">
-            100% yours
-          </span>
+          <span className="gradient-text">100% yours</span>
         </h1>
-        <p className="mt-5 max-w-xl text-balance text-lg text-muted-foreground">
+        <p className="mt-5 max-w-xl animate-slide-up text-balance text-lg text-muted-foreground animate-delay-100">
           Launch a stunning, on-brand booking experience for your spa in
           minutes. Flat monthly pricing, zero commission on every appointment.
         </p>
-        <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row">
-          <Button size="lg">
+        <div className="mt-8 flex animate-slide-up flex-col items-center gap-3 animate-delay-200 sm:flex-row">
+          <Link href="/glow-klcc" className={buttonVariants({ size: "lg" })}>
             Start free trial
             <ArrowRight />
-          </Button>
-          <Button size="lg" variant="secondary">
-            Book a demo
-          </Button>
+          </Link>
+          <Link
+            href="/track"
+            className={buttonVariants({ size: "lg", variant: "secondary" })}
+          >
+            Track a booking
+          </Link>
         </div>
         <p className="mt-4 text-sm text-muted-foreground">
           No card required · 14-day trial

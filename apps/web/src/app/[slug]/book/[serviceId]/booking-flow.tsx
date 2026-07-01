@@ -1,8 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Check, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatDate, formatTime } from "@/lib/format";
@@ -21,6 +22,7 @@ interface Slot {
 }
 
 interface Confirmation {
+  reference: string;
   startAt: string;
   serviceName: string;
   staffName: string;
@@ -117,6 +119,7 @@ export function BookingFlow({ slug, serviceId, timezone }: Props) {
         return;
       }
       setConfirmation({
+        reference: data.reference,
         startAt: data.startAt,
         serviceName: data.serviceName,
         staffName: data.staffName,
@@ -130,11 +133,13 @@ export function BookingFlow({ slug, serviceId, timezone }: Props) {
 
   if (confirmation) {
     return (
-      <div className="rounded-xl border border-border bg-card p-8 text-center shadow-sm">
-        <span className="mx-auto mb-4 grid size-12 place-items-center rounded-full bg-success/15 text-success">
-          <Check className="size-6" />
+      <div className="animate-slide-up rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
+        <span className="mx-auto mb-4 grid size-14 place-items-center rounded-full bg-success/15 text-success">
+          <Check className="size-7" />
         </span>
-        <h2 className="text-xl font-semibold">Booking confirmed</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">
+          Booking confirmed
+        </h2>
         <p className="mt-2 text-muted-foreground">
           {confirmation.serviceName} with {confirmation.staffName}
         </p>
@@ -142,9 +147,25 @@ export function BookingFlow({ slug, serviceId, timezone }: Props) {
           {formatDate(confirmation.startAt, timezone)} at{" "}
           {formatTime(confirmation.startAt, timezone)}
         </p>
+
+        <div className="mx-auto mt-6 max-w-xs rounded-xl border border-dashed border-border bg-muted/40 p-4">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">
+            Your booking reference
+          </p>
+          <p className="mt-1 font-mono text-2xl font-semibold tracking-[0.2em]">
+            {confirmation.reference}
+          </p>
+        </div>
+
         <p className="mt-4 text-sm text-muted-foreground">
-          We&apos;ve sent your request to the spa. See you soon!
+          Save this to check your status anytime — no login needed.
         </p>
+        <Link
+          href={`/track/${confirmation.reference}`}
+          className={cn(buttonVariants({ variant: "secondary" }), "mt-4")}
+        >
+          Track my booking
+        </Link>
       </div>
     );
   }
@@ -182,7 +203,11 @@ export function BookingFlow({ slug, serviceId, timezone }: Props) {
       <section>
         <h2 className="mb-3 text-sm font-medium">Choose a time</h2>
         {loadingSlots ? (
-          <p className="text-sm text-muted-foreground">Loading times…</p>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="skeleton h-10 rounded-lg" />
+            ))}
+          </div>
         ) : slots && slots.length > 0 ? (
           <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
             {slots.map((s) => (

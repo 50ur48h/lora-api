@@ -12,6 +12,7 @@ import { Public } from '../../common/auth/public.decorator';
 import { AvailabilityQueryDto } from './dto/availability-query.dto';
 import { AvailabilityResponseDto } from './dto/availability-response.dto';
 import { BookingResponseDto } from './dto/booking-response.dto';
+import { BookingTrackResponseDto } from './dto/booking-track-response.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
 import { PublicStoreResponseDto } from './dto/public-store-response.dto';
 import { PublicService } from './public.service';
@@ -50,5 +51,15 @@ export class PublicController {
     @Body() dto: CreateBookingDto,
   ): Promise<BookingResponseDto> {
     return this.publicService.createBooking(slug, dto);
+  }
+
+  /** Public booking tracking by reference number — no auth required. */
+  @Get('bookings/:reference')
+  @Public()
+  @ApiOkResponse({ type: BookingTrackResponseDto })
+  trackBooking(
+    @Param('reference') reference: string,
+  ): Promise<BookingTrackResponseDto> {
+    return this.publicService.trackBooking(reference);
   }
 }

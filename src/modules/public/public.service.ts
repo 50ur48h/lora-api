@@ -1,3 +1,4 @@
+import { randomBytes } from 'node:crypto';
 import { InjectQueue } from '@nestjs/bullmq';
 import {
   ConflictException,
@@ -5,7 +6,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { BookingStatus, Role } from '@prisma/client';
+import { BookingStatus, Prisma, Role } from '@prisma/client';
 import { Queue } from 'bullmq';
 import { DateTime } from 'luxon';
 import { PrismaService } from '../../common/prisma/prisma.service';
@@ -19,6 +20,7 @@ import {
 } from '../../common/tenancy/tenant-context';
 import type { AvailabilityResponseDto } from './dto/availability-response.dto';
 import type { BookingResponseDto } from './dto/booking-response.dto';
+import type { BookingTrackResponseDto } from './dto/booking-track-response.dto';
 import type { CreateBookingDto } from './dto/create-booking.dto';
 import type { PublicStoreResponseDto } from './dto/public-store-response.dto';
 import {
@@ -272,36 +274,21 @@ export class PublicService {
       const endAt = new Date(startAt.getTime() + service.durationMin * 60_000);
       const customer = await this.findOrCreateCustomer(tenantId, dto.customer);
 
-      let booking: {
-        id: string;
-        status: BookingStatus;
-        startAt: Date;
-        endAt: Date;
-      };
-      try {
-        booking = await this.prisma.scoped.booking.create({
-          data: {
-            tenantId,
-            storeId,
-            serviceId: dto.serviceId,
-            staffId: dto.staffId,
-            customerId: customer.id,
-            startAt,
-            endAt,
-          },
-          select: { id: true, status: true, startAt: true, endAt: true },
-        });
-      } catch (err) {
-        if (isExclusionViolation(err)) {
-          throw new ConflictException('Slot was just taken');
-        }
-        throw err;
-      }
+      const booking = await this.createWithReference({
+        tenantId,
+        storeId,
+        serviceId: dto.serviceId,
+        staffId: dto.staffId,
+        customerId: customer.id,
+        startAt,
+        endAt,
+      });
 
       await this.enqueueConfirmation(booking.id, tenantId);
 
       return {
         id: booking.id,
+        reference: booking.reference,
         status: booking.status,
         startAt: booking.startAt.toISOString(),
         endAt: booking.endAt.toISOString(),
@@ -351,6 +338,95 @@ export class PublicService {
     });
   }
 
+  /**
+   * Creates a booking, generating a unique tracking reference and retrying on
+   * the (astronomically rare) reference collision. Slot exclusion conflicts
+   * surface as 409.
+   */
+  private async createWithReference(
+    data: Omit<Prisma.BookingUncheckedCreateInput, 'reference'>,
+  ): Promise<{
+    id: string;
+    reference: string;
+    status: BookingStatus;
+    startAt: Date;
+    endAt: Date;
+  }> {
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await this.prisma.scoped.booking.create({
+          data: { ...data, reference: generateReference() },
+          select: {
+            id: true,
+            reference: true,
+            status: true,
+            startAt: true,
+            endAt: true,
+          },
+        });
+      } catch (err) {
+        if (isExclusionViolation(err)) {
+          throw new ConflictException('Slot was just taken');
+        }
+        if (isReferenceCollision(err) && attempt < 4) {
+          continue;
+        }
+        throw err;
+      }
+    }
+  }
+
+  /**
+   * Public booking status lookup by reference (no auth). Resolves the tenant via
+   * the SECURITY DEFINER function, then reads under that tenant's RLS context.
+   */
+  async trackBooking(reference: string): Promise<BookingTrackResponseDto> {
+    const { bookingId, tenantId } =
+      await this.resolveBookingByReference(reference);
+
+    return this.asTenant(tenantId, async () => {
+      const booking = await this.prisma.scoped.booking.findUnique({
+        where: { id: bookingId },
+        include: {
+          service: { select: { name: true, priceCents: true } },
+          staff: { select: { name: true } },
+          store: { select: { name: true, slug: true, timezone: true } },
+          customer: { select: { name: true } },
+        },
+      });
+      if (!booking) {
+        throw new NotFoundException('Booking not found');
+      }
+      return {
+        reference: booking.reference,
+        status: booking.status,
+        startAt: booking.startAt.toISOString(),
+        endAt: booking.endAt.toISOString(),
+        serviceName: booking.service.name,
+        staffName: booking.staff.name,
+        storeName: booking.store.name,
+        storeSlug: booking.store.slug,
+        timezone: booking.store.timezone,
+        customerName: booking.customer.name,
+        priceCents: booking.service.priceCents,
+      };
+    });
+  }
+
+  /** Cross-tenant reference -> {booking, tenant} lookup via the SECURITY DEFINER fn. */
+  private async resolveBookingByReference(
+    reference: string,
+  ): Promise<{ bookingId: string; tenantId: string }> {
+    const [resolved] = await this.prisma.$queryRaw<
+      Array<{ booking_id: string; tenant_id: string }>
+    >`SELECT booking_id, tenant_id FROM resolve_booking_by_reference(${reference})`;
+
+    if (!resolved) {
+      throw new NotFoundException('Booking not found');
+    }
+    return { bookingId: resolved.booking_id, tenantId: resolved.tenant_id };
+  }
+
   /** Cross-tenant slug -> {store, tenant} lookup via the SECURITY DEFINER fn. */
   private async resolveStore(
     slug: string,
@@ -373,6 +449,29 @@ export class PublicService {
     };
     return runWithTenant(ctx, fn);
   }
+}
+
+/** Unambiguous alphabet (no I, L, O, 0, 1) for human-readable references. */
+const REFERENCE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const REFERENCE_LENGTH = 8;
+
+/** Generates a short, human-friendly, URL-safe booking reference. */
+function generateReference(): string {
+  const bytes = randomBytes(REFERENCE_LENGTH);
+  let out = '';
+  for (let i = 0; i < REFERENCE_LENGTH; i++) {
+    out += REFERENCE_ALPHABET[bytes[i] % REFERENCE_ALPHABET.length];
+  }
+  return out;
+}
+
+/** Detects a unique-constraint violation on the booking reference. */
+function isReferenceCollision(err: unknown): boolean {
+  if (!(err instanceof Prisma.PrismaClientKnownRequestError)) return false;
+  if (err.code !== 'P2002') return false;
+  const target = err.meta?.target;
+  const targetStr = Array.isArray(target) ? target.join(',') : String(target);
+  return targetStr.includes('reference');
 }
 
 /** Detects the Postgres exclusion-constraint violation Prisma leaves unmapped. */

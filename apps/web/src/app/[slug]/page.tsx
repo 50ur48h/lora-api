@@ -33,7 +33,7 @@ export default async function StorefrontPage({
   return (
     <div style={brandStyle(store.theme)} className="flex flex-1 flex-col">
       <header className="border-b border-border">
-        <div className="mx-auto flex w-full max-w-4xl flex-col items-start gap-3 px-6 py-12">
+        <div className="mx-auto flex w-full max-w-4xl animate-fade-in flex-col items-start gap-3 px-6 py-12">
           <Badge>Now booking</Badge>
           <h1 className="text-4xl font-semibold tracking-tight">
             {store.name}
@@ -51,7 +51,10 @@ export default async function StorefrontPage({
         ) : (
           <div className="grid gap-4 sm:grid-cols-2">
             {store.services.map((service) => (
-              <Card key={service.id} className="flex flex-col hover:shadow-md">
+              <Card
+                key={service.id}
+                className="flex animate-slide-up flex-col transition-all hover:-translate-y-0.5 hover:shadow-md"
+              >
                 <CardHeader className="flex-1">
                   <CardTitle>{service.name}</CardTitle>
                   <div className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
@@ -77,10 +80,18 @@ export default async function StorefrontPage({
       </main>
 
       <footer className="border-t border-border">
-        <div className="mx-auto w-full max-w-4xl px-6 py-6 text-sm text-muted-foreground">
-          Powered by{" "}
-          <span className="font-medium text-foreground">LORA</span> · 0% booking
-          fees
+        <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-4 px-6 py-6 text-sm text-muted-foreground">
+          <span>
+            Powered by{" "}
+            <span className="font-medium text-foreground">LORA</span> · 0%
+            booking fees
+          </span>
+          <Link
+            href="/track"
+            className="transition-colors hover:text-foreground"
+          >
+            Track a booking
+          </Link>
         </div>
       </footer>
     </div>

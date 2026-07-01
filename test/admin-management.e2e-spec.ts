@@ -44,6 +44,7 @@ describe('Admin management (e2e)', () => {
     await db.booking.create({
       data: {
         id: TEST_BOOKING_ID,
+        reference: 'E2EMGMT1',
         tenantId: IDS.tenantA,
         storeId: IDS.storeA,
         serviceId: service.id,
