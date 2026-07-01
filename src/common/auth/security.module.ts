@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { UsersModule } from '../../modules/users/users.module';
 import { JwtAuthGuard } from './jwt-auth.guard';
+import { SupabaseJwtVerifier } from './jwt-verifier.service';
 import { RolesGuard } from './roles.guard';
 
 /**
@@ -12,6 +13,7 @@ import { RolesGuard } from './roles.guard';
 @Module({
   imports: [UsersModule],
   providers: [
+    SupabaseJwtVerifier,
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],

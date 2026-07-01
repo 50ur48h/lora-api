@@ -98,9 +98,27 @@
     ],
     "rootDir": "src",
     "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
+    "testEnvironmentOptions": {
+      "customExportConditions": [
+        "node",
+        "require",
+        "default"
+      ]
     },
+    "transform": {
+      "^.+\\.(t|j)s$": [
+        "ts-jest",
+        {
+          "isolatedModules": true,
+          "tsconfig": {
+            "allowJs": true
+          }
+        }
+      ]
+    },
+    "transformIgnorePatterns": [
+      "/node_modules/\\.pnpm/(?!jose@)"
+    ],
     "collectCoverageFrom": [
       "**/*.(t|j)s"
     ],

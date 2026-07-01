@@ -6,17 +6,17 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
-import { AppConfigService } from '../../config/app-config.service';
 import { UsersService } from '../../modules/users/users.service';
 import type { AuthenticatedUser } from './authenticated-user';
-import { extractBearerToken, verifySupabaseJwt } from './jwt';
+import { extractBearerToken } from './jwt';
+import { SupabaseJwtVerifier } from './jwt-verifier.service';
 import { IS_PUBLIC_KEY } from './public.decorator';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    private readonly config: AppConfigService,
+    private readonly verifier: SupabaseJwtVerifier,
     private readonly users: UsersService,
   ) {}
 
@@ -39,10 +39,7 @@ export class JwtAuthGuard implements CanActivate {
     let sub: string;
     let email: string | undefined;
     try {
-      const payload = await verifySupabaseJwt(
-        token,
-        this.config.supabaseJwtSecret,
-      );
+      const payload = await this.verifier.verify(token);
       sub = payload.sub;
       email = payload.email;
     } catch {
