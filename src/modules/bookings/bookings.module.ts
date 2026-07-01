@@ -1,5 +1,10 @@
 import { Module } from '@nestjs/common';
+import { BookingsController } from './bookings.controller';
+import { BookingsService } from './bookings.service';
 
-/** Skeleton — booking creation & availability logic arrives in Phase 1. */
-@Module({})
+/** Admin-facing booking queries (tenant-scoped, authenticated). */
+@Module({
+  controllers: [BookingsController],
+  providers: [BookingsService],
+})
 export class BookingsModule {}

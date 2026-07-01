@@ -10,12 +10,28 @@ export class UsersService {
    * Resolves the identity context from the JWT `sub`. Uses the base client
    * (not tenant-scoped): this runs during authentication, before tenant
    * context exists, and `User` is not an RLS-protected table.
+   *
+   * If no row matches the `sub` but one matches the token's email, that row is
+   * a pre-provisioned (seeded/invited) user signing in through Supabase for the
+   * first time — adopt it by linking the Supabase auth id. `User.email` is
+   * unique and nothing references `User.id`, so re-keying the row is safe.
    */
   async loadContext(
     id: string,
-    _email?: string,
+    email?: string,
   ): Promise<AuthenticatedUser | null> {
-    const user = await this.prisma.user.findUnique({ where: { id } });
+    let user = await this.prisma.user.findUnique({ where: { id } });
+
+    if (!user && email) {
+      const invited = await this.prisma.user.findUnique({ where: { email } });
+      if (invited) {
+        user = await this.prisma.user.update({
+          where: { email },
+          data: { id },
+        });
+      }
+    }
+
     if (!user) return null;
     return {
       id: user.id,
