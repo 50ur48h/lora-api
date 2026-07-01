@@ -34,6 +34,11 @@ export const envSchema = z.object({
   // Stripe (stored now, used in Phase 1)
   STRIPE_SECRET_KEY: z.string().default(''),
   STRIPE_WEBHOOK_SECRET: z.string().default(''),
+
+  // Email (Resend now; provider is swappable to SendGrid/Twilio later).
+  // Blank key (or NODE_ENV=test) falls back to a log-only provider.
+  RESEND_API_KEY: z.string().default(''),
+  EMAIL_FROM: z.string().default('onboarding@resend.dev'),
 });
 
 export type Env = z.infer<typeof envSchema>;

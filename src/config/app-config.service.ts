@@ -53,4 +53,12 @@ export class AppConfigService {
   get sentryDsn(): string {
     return this.get('SENTRY_DSN');
   }
+
+  get resendApiKey(): string {
+    return this.get('RESEND_API_KEY');
+  }
+
+  get emailFrom(): string {
+    return this.get('EMAIL_FROM');
+  }
 }
